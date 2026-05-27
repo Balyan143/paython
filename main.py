@@ -1,69 +1,68 @@
-from flet import *
+import flet as ft
+import requests
 
-def main(page: Page):
-    page.title = "Flet Login Page"
-    
-    # --- Habka saxda ah ee loo qasbo cabbirka nidaamka cusub ---
-    page.window.width = 390
-    page.window.height = 740
-    page.window.resizable = False  # Si aan gacanta loogu weyneyn karin
-    
-    page.vertical_alignment = MainAxisAlignment.CENTER
-    page.horizontal_alignment = CrossAxisAlignment.CENTER
+def main(page: ft.Page):
+    page.title = "App-ka Carruurta (Online)"
+    page.theme_mode = ft.ThemeMode.LIGHT
+    page.vertical_alignment = ft.MainAxisAlignment.CENTER
+    page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
 
-    # Meelaha qoraalka laga gelinayo (Input Fields)
-    username_input = TextField(
-        label="Magaca isticmaalaha (Username)", 
-        width=320
+    # 1. Khadka tooska ah ee JSON-kaaga (Kani waa link-gii saxda ahaa ee galkaaga)
+    URL_ONLINE = "https://raw.githubusercontent.com/Balyan143/paython/main/casharada.json"
+
+    # Sameynta meelaha qoraalka iyo batoonka ee shaashadda ku yaal
+    title_text = ft.Text("Soo dejinyaya casharka...", size=26, weight=ft.FontWeight.BOLD, color=ft.Colors.BLUE_900)
+    result_text = ft.Text("Sug dhowr ilbiriqsi...", size=18)
+    
+    # Batoonka weyn ee midabka yeelan doona
+    color_button = ft.ElevatedButton(
+        text="Guji", 
+        color=ft.Colors.WHITE,
+        bgcolor=ft.Colors.GREY_400,
+        width=220,
+        height=65
     )
-    
-    password_input = TextField(
-        label="Erayga Sirta ah (Password)", 
-        width=320, 
-        password=True, 
-        can_reveal_password=True
-    )
 
-    message_text = Text(value="", color="green", size=14)
-
-    def login_click(e):
-        if username_input.value == "" or password_input.value == "":
-            message_text.value = "Fadlan buuxi dhamaan meelaha banaan!"
-            message_text.color = "red"
-        else:
-            message_text.value = f"Ku soo dhowaw, {username_input.value}!"
-            message_text.color = "green"
+    # 2. Shaqada internet-ka wax ka soo akhrinaysa
+    def load_online_data():
+        try:
+            # Sii wadashada internet-ka
+            response = requests.get(URL_ONLINE, timeout=5)
+            data = response.json() # Aqoonsiga qaabka JSON-ka
+            
+            # Soo bixinta xogta gudaha JSON-ka ku jirtay
+            title_text.value = data.get("ciwaan", "Baro Midabyada Maanta! 🎨")
+            color_button.text = data.get("midabka_batoonka", "CAS")
+            
+            # Beddelidda midabka batoonka si waafaqsan waxa online-ka ku jira
+            if data.get("midabka_batoonka") == "RED":
+                color_button.bgcolor = ft.Colors.RED
+                
+            # Shaqada dhacaysa marka batoonka la riixo (soo bandhigidda macnaha midabka)
+            def on_click_action(e):
+                result_text.value = data.get("magaca_midabka", "Kani waa Midabka CAS! ❤️")
+                page.update()
+                
+            color_button.on_click = on_click_action
+            
+        except Exception as err:
+            # Haddii talefanku uusan internet lahayn, kani waa casharka caadiga ah
+            title_text.value = "Ku soo dhowow App-ka! 👶"
+            color_button.text = "Tijaabi mar kale"
+            result_text.value = "Fadlan shid internet-ka si aad casharka u aragto."
+            
         page.update()
 
-    login_button = ElevatedButton(
-        content=Text("Login"), 
-        on_click=login_click, 
-        width=150
+    # Ku darista walxaha shaashadda talefanka
+    page.add(
+        title_text,
+        ft.Divider(height=30, color=ft.Colors.TRANSPARENT),
+        color_button,
+        ft.Divider(height=20, color=ft.Colors.TRANSPARENT),
+        result_text
     )
 
-    # Qaybta weyn ee Login-ka
-    login_card = Card(
-        content=Container(
-            content=Column(
-                controls=[
-                    Text("Ku soo Dhawaw", size=22, weight=FontWeight.BOLD),
-                    Text("Geli xogtaada", size=12, color="grey"),
-                    Divider(),
-                    username_input,
-                    password_input,
-                    Container(height=10),
-                    login_button,
-                    message_text
-                ],
-                horizontal_alignment=CrossAxisAlignment.CENTER,
-            ),
-            padding=20,
-            width=340,
-        )
-    )
+    # Kicinta shaqada internet-ka isla marka uu app-ku furmo
+    load_online_data()
 
-    page.add(login_card)
-    page.update() # Aad u muhiim ah si cabbirka daaqadda uu u hirgalo
-
-# Amarka caadiga ah ee shaqaynaya khalad la'aan
-app(target=main)
+ft.app(target=main)
