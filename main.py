@@ -35,8 +35,13 @@ def main(page: ft.Page):
             title_text.value = data.get("ciwaan", "Baro Midabyada Maanta!")
             color_button.text = data.get("midabka_batoonka", "CAS")
             
+            # Hubinta midabada si batoonku isku beddelo
             if data.get("midabka_batoonka") == "RED":
                 color_button.bgcolor = ft.Colors.RED
+            elif data.get("midabka_batoonka") == "GREEN":
+                color_button.bgcolor = ft.Colors.GREEN
+            elif data.get("midabka_batoonka") == "BLUE":
+                color_button.bgcolor = ft.Colors.BLUE
                 
             def on_click_action(e):
                 result_text.value = data.get("magaca_midabka", "Kani waa Midabka CAS!")
@@ -61,9 +66,5 @@ def main(page: ft.Page):
 
     load_online_data()
 
-# Khadkan hoose wuxuu si toos ah Android ugu qasbayaa inuu shido Internet-ka!
-ft.app(
-    target=main,
-    assets_dir="assets",
-    web_renderer=ft.WebRenderer.HTML
-)
+# Kani waa khadka saxda ah ee aan cillada lahayn!
+ft.app(target=main)
