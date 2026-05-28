@@ -1,6 +1,6 @@
 import flet as ft
-import urllib.request
 import json
+import threading
 
 def main(page: ft.Page):
     page.title = "App-ka Carruurta"
@@ -23,16 +23,27 @@ def main(page: ft.Page):
         height=65
     )
 
-    def fetch_data(e):
-        title_text.value = "Wuu soo dejinayaa..."
-        batoon_qoraal.value = "Sug..."
-        page.update()
-        
+    def fetch_data_sync():
+        """Fetch data in a separate thread to prevent UI freezing"""
         try:
-            req = urllib.request.Request(URL_ONLINE, headers={'User-Agent': 'Mozilla/5.0'})
-            response = urllib.request.urlopen(req, timeout=10)
-            data = json.loads(response.read().decode('utf-8'))
+            title_text.value = "Wuu soo dejinayaa..."
+            batoon_qoraal.value = "Sug..."
+            page.update()
             
+            # Use requests library which works better on Android
+            try:
+                import requests
+                response = requests.get(URL_ONLINE, timeout=10)
+                response.raise_for_status()
+                data = response.json()
+            except ImportError:
+                # Fallback to urllib if requests not available
+                import urllib.request
+                req = urllib.request.Request(URL_ONLINE, headers={'User-Agent': 'Mozilla/5.0'})
+                response = urllib.request.urlopen(req, timeout=10)
+                data = json.loads(response.read().decode('utf-8'))
+            
+            # Update UI with fetched data
             title_text.value = data.get("ciwaan", "Baro Midabyada Maanta!")
             batoon_qoraal.value = data.get("midabka_batoonka", "CAS")
             
@@ -57,10 +68,16 @@ def main(page: ft.Page):
         except Exception as err:
             title_text.value = "Cillad Internet! ❌"
             batoon_qoraal.value = "Mar Kale Tijaabi"
-            result_text.value = f"Hubi intarnet-kaaga."
-            color_button.on_click = fetch_data
+            result_text.value = f"Hubi intarnet-kaaga: {str(err)}"
+            color_button.on_click = lambda e: fetch_data(e)
+            print(f"Error: {err}")  # For debugging
             
         page.update()
+
+    def fetch_data(e):
+        """Button click handler - runs fetch in background thread"""
+        thread = threading.Thread(target=fetch_data_sync, daemon=True)
+        thread.start()
 
     color_button.on_click = fetch_data
 
