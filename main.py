@@ -23,6 +23,17 @@ def main(page: ft.Page):
         height=65
     )
 
+    # Video player component
+    video_player = ft.Video(
+        src="",
+        width=320,
+        height=240,
+        autoplay=False,
+        playback_rate=1.0,
+        muted=False,
+        visible=False
+    )
+
     def fetch_data_sync():
         """Fetch data in a separate thread to prevent UI freezing"""
         try:
@@ -57,7 +68,13 @@ def main(page: ft.Page):
                 color_button.bgcolor = "blue"
             else:
                 color_button.bgcolor = "orange"
-                
+            
+            # Load video from JSON if available
+            video_link = data.get("video_link", "")
+            if video_link:
+                video_player.src = video_link
+                video_player.visible = True
+            
             def on_color_click(e):
                 result_text.value = data.get("magaca_midabka", "Kani waa midab cusub!")
                 page.update()
@@ -69,6 +86,7 @@ def main(page: ft.Page):
             title_text.value = "Cillad Internet! ❌"
             batoon_qoraal.value = "Mar Kale Tijaabi"
             result_text.value = f"Hubi intarnet-kaaga: {str(err)}"
+            video_player.visible = False
             color_button.on_click = lambda e: fetch_data(e)
             print(f"Error: {err}")  # For debugging
             
@@ -85,6 +103,8 @@ def main(page: ft.Page):
         title_text,
         ft.Divider(height=30, color="transparent"),
         color_button,
+        ft.Divider(height=20, color="transparent"),
+        video_player,
         ft.Divider(height=20, color="transparent"),
         result_text
     )
